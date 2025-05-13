@@ -1,0 +1,69 @@
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width"><title>Demonstrating Diffie-Hellman Key Exchange with OpenSSL | Ming's Space</title>
+<link rel=stylesheet href=/css/main.min.b55c8870c8d792212ada30bdaed8cb719c9dec6d8a43ddfce2b4c75e8fef73b6.css integrity="sha256-tVyIcMjXkiEq2jC9rtjLcZyd7G2KQ9384rTHXo/vc7Y=" crossorigin=anonymous><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css><script src=/js/main.23cd0c7d837263b9eaeb96ee2d9ccfa2969daa3fa00fa1c1fe8701a9b87251a1.js integrity="sha256-I80MfYNyY7nq65buLZzPopadqj+gD6HB/ocBqbhyUaE=" crossorigin=anonymous></script><script src=/js/main.27beef39a4886af29613faf6922990fb36c81706e420fdec60552526d34439f0.js integrity="sha256-J77vOaSIavKWE/r2kimQ+zbIFwbkIP3sYFUlJtNEOfA=" crossorigin=anonymous></script></head><body><header><nav><div class=logo><a href=https://zhuhongming.xyz/>Ming's Space</a></div><div class=nav-links><nav><ul><li><a href=/en/>Home</a></li><li><a aria-current=true class=ancestor href=/en/posts/>Posts</a></li><li><a href=/en/projects/>Projects</a></li></ul></nav><div class=language-switcher><div class=dropdown><button class=dropbtn aria-haspopup=true aria-label>
+<i class="fa-solid fa-language"></i>
+<span class=sr-only></span></button><div class=dropdown-content><a href=/en/posts/diffie-hellman-key-exchange/ lang=en hreflang=en class=active>English
+</a><a href=/zh/posts/diffie-hellman-key-exchange/ lang=zh hreflang=zh>中文</a></div></div></div></div></nav></header><main><div class=page-container><nav class=toc><div class=toc-header><h2>Table of Contents</h2></div><div class=toc-content><nav id=TableOfContents><ul><li><a href=#what-you-need>What You Need</a></li><li><a href=#step-by-step-connect-to-a-tls-server-with-openssl>Step-by-Step: Connect to a TLS Server with OpenSSL</a><ul><li><a href=#step-1-run-openssl-client>Step 1: Run OpenSSL Client</a></li><li><a href=#step-2-understand-the-output>Step 2: Understand the Output</a></li></ul></li><li><a href=#summary>Summary</a></li></ul></nav></div></nav><article class=content><h1>Demonstrating Diffie-Hellman Key Exchange with OpenSSL</h1><time datetime=2025-05-12T12:00:13+08:00>May 12, 2025</time><p>The <strong>Diffie-Hellman key exchange algorithm</strong> is widely used in HTTPS to securely establish a shared secret between a client and server, even over an insecure channel. In this post, we’ll use openssl <code>s_client</code> to connect to a real-world HTTPS server and examine how <strong>ECDHE</strong> (ephemeral elliptic curve Diffie-Hellman) is used.</p><hr><h2 id=what-you-need>What You Need</h2><ul><li>A Linux/macOS system (or WSL on Windows)</li><li>OpenSSL installed (openssl version to check)</li><li>Internet access</li></ul><hr><h2 id=step-by-step-connect-to-a-tls-server-with-openssl>Step-by-Step: Connect to a TLS Server with OpenSSL</h2><p>Let’s connect to <code>www.baidu.com</code> using OpenSSL and observe the handshake:</p><h3 id=step-1-run-openssl-client>Step 1: Run OpenSSL Client</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>openssl s_client -connect www.baidu.com:443 -cipher ECDHE
+</span></span></code></pre></div><p>This tells OpenSSL to:</p><ul><li>Connect to <a href=https://www.baidu.com>www.baidu.com</a> on port 443 (HTTPS)</li><li>Restrict cipher suites to only those using <strong>ECDHE</strong></li></ul><h3 id=step-2-understand-the-output>Step 2: Understand the Output</h3><p>Here’s an example excerpt of what you might see:</p><pre tabindex=0><code>CONNECTED(00000006)
+depth=2 OU = GlobalSign Root CA - R3, O = GlobalSign, CN = GlobalSign
+verify return:1
+depth=1 C = BE, O = GlobalSign nv-sa, CN = GlobalSign RSA OV SSL CA 2018
+verify return:1
+depth=0 C = CN, ST = beijing, L = beijing, O = &#34;Beijing Baidu Netcom Science Technology Co., Ltd&#34;, CN = baidu.com
+verify return:1
+---
+Certificate chain
+...
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+subject=C = CN, ST = beijing, L = beijing, O = &#34;Beijing Baidu Netcom Science Technology Co., Ltd&#34;, CN = baidu.com
+issuer=C = BE, O = GlobalSign nv-sa, CN = GlobalSign RSA OV SSL CA 2018
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: ECDH, prime256v1, 256 bits
+---
+SSL handshake has read 5414 bytes and written 443 bytes
+Verification: OK
+---
+New, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256
+Server public key is 2048 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : ECDHE-RSA-AES128-GCM-SHA256
+    Session-ID: BDB5233DDD9D825F7B817344531488F47A5698EC0BF4B1B8C33E042E228BB7D7
+    Session-ID-ctx: 
+    Master-Key: 02B49C3C3658647AA95C2E0E19A3E7458E725306441C93A63A6628838F1C5409E48D5D23B76452153573FB6D32DFA360
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket:
+    0000 - cc 95 13 98 05 87 6f 12-cd de d9 e9 cc e0 cc f7   ......o.........
+    0010 - 0c 2b 50 7c 40 bd b2 24-cf a4 c0 4b 42 4b ff c9   .+P|@..$...KBK..
+    0020 - 7f 16 84 a5 bb f8 4b 40-37 5b 7e 6c 6e 06 64 8f   ......K@7[~ln.d.
+    0030 - a0 4a 7a c0 55 9d c9 1d-69 b4 82 bb 5f 9e 97 7d   .Jz.U...i..._..}
+    0040 - 78 f6 e6 ac 46 15 a3 53-f6 d8 f4 8e da 58 69 12   x...F..S.....Xi.
+    0050 - 44 7b b2 4e 42 ff 2c 71-07 2c 08 80 2f 0d e7 d3   D{.NB.,q.,../...
+    0060 - 49 2a ad 05 33 71 d8 be-da de 67 86 dd 01 00 1f   I*..3q....g.....
+    0070 - 7e 1f 45 1c 78 0b bb 1a-6f 42 dc 4a 14 57 bd 12   ~.E.x...oB.J.W..
+    0080 - f7 38 8c 5b ff cd 88 0a-97 e6 4d ad f8 c7 83 d1   .8.[......M.....
+    0090 - 05 b6 88 31 81 47 e1 9f-c2 8f e9 28 cf d1 43 eb   ...1.G.....(..C.
+
+    Start Time: 1747110246
+    Timeout   : 7200 (sec)
+    Verify return code: 0 (ok)
+    Extended master secret: no
+---
+closed
+</code></pre><h4 id=key-elements-to-note>Key Elements to Note</h4><table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td>Cipher: ECDHE-RSA-AES128-GCM-SHA256</td><td>Secures the handshake with ephemeral Diffie-Hellman key exchange and RSA authentication; Encrypts data using AES-128 in GCM mode. Ensures integrity using SHA-256.</td></tr><tr><td>Server public key is 2048 bit</td><td>Refers to the RSA certificate (used for authentication) — not for key exchange</td></tr><tr><td>Secure Renegotiation IS supported</td><td>Optional TLS feature</td></tr></tbody></table><p>Even though the RSA public key is shown, the <strong>session key is derived using ephemeral ECDH</strong>, which provides <strong>forward secrecy</strong> (past sessions can’t be decrypted even if RSA key is compromised later).</p><h4 id=want-more-detail-use--msg>Want More Detail? Use -msg</h4><p>To see the handshake messages themselves, run:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>openssl s_client -connect www.baidu.com:443 -cipher ECDHE -msg
+</span></span></code></pre></div><p>This shows handshake messages like:</p><pre tabindex=0><code>&gt;&gt;&gt; TLS 1.2 Handshake [ClientHello]
+&gt;&gt;&gt; TLS 1.2 Handshake [ServerHello]
+&gt;&gt;&gt; TLS 1.2 Handshake [ServerKeyExchange]
+</code></pre><p>In <code>ServerKeyExchange</code>, you’ll see the <strong>server’s ECDH public key</strong>, which will be used along with the client’s key to derive the shared secret.</p><blockquote><p>Note: In <strong>TLS 1.3</strong>, the handshake is more streamlined and doesn’t use a separate <code>ServerKeyExchange</code> message; key exchange data is sent in <code>ServerHello</code>.</p></blockquote><hr><h2 id=summary>Summary</h2><p>This simple demo shows how ECDHE (a form of Diffie-Hellman) is used in HTTPS via TLS to:</p><ul><li>Establish a shared secret</li><li>Prevent passive eavesdropping</li><li>Enable <strong>forward secrecy</strong></li></ul><p>This is done in every secure HTTPS connection you make in modern browsers.</p></article></div></main><footer><div class=footer-container><div class=footer-content><p>&copy; 2025 Ming's Space. All rights reserved.</p><a href=https://beian.miit.gov.cn/ target=_blank>皖ICP备2025084530号-1</a></div></div></footer></body></html>

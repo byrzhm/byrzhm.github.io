@@ -1,0 +1,53 @@
+<!doctype html><html lang=zh dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width"><title>使用 OpenSSL 演示 Diffie-Hellman 密钥交换算法 | 小明的空间</title>
+<link rel=stylesheet href=/css/main.min.b55c8870c8d792212ada30bdaed8cb719c9dec6d8a43ddfce2b4c75e8fef73b6.css integrity="sha256-tVyIcMjXkiEq2jC9rtjLcZyd7G2KQ9384rTHXo/vc7Y=" crossorigin=anonymous><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css><script src=/js/main.23cd0c7d837263b9eaeb96ee2d9ccfa2969daa3fa00fa1c1fe8701a9b87251a1.js integrity="sha256-I80MfYNyY7nq65buLZzPopadqj+gD6HB/ocBqbhyUaE=" crossorigin=anonymous></script><script src=/js/main.27beef39a4886af29613faf6922990fb36c81706e420fdec60552526d34439f0.js integrity="sha256-J77vOaSIavKWE/r2kimQ+zbIFwbkIP3sYFUlJtNEOfA=" crossorigin=anonymous></script></head><body><header><nav><div class=logo><a href=https://zhuhongming.xyz/>小明的空间</a></div><div class=nav-links><nav><ul><li><a href=/zh/>首页</a></li><li><a aria-current=true class=ancestor href=/zh/posts/>文章</a></li><li><a href=/zh/projects/>项目</a></li></ul></nav><div class=language-switcher><div class=dropdown><button class=dropbtn aria-haspopup=true aria-label>
+<i class="fa-solid fa-language"></i>
+<span class=sr-only></span></button><div class=dropdown-content><a href=/en/posts/diffie-hellman-key-exchange/ lang=en hreflang=en>English
+</a><a href=/zh/posts/diffie-hellman-key-exchange/ lang=zh hreflang=zh class=active>中文</a></div></div></div></div></nav></header><main><div class=page-container><nav class=toc><div class=toc-header><h2>目录</h2></div><div class=toc-content><nav id=TableOfContents><ul><li><a href=#准备工作>准备工作</a></li><li><a href=#手把手使用-openssl-连接-tls-服务器>手把手：使用 OpenSSL 连接 TLS 服务器</a><ul><li><a href=#第一步运行-openssl-客户端>第一步：运行 OpenSSL 客户端</a></li><li><a href=#第二步理解输出内容>第二步：理解输出内容</a></li></ul></li><li><a href=#总结>总结</a></li></ul></nav></div></nav><article class=content><h1>使用 OpenSSL 演示 Diffie-Hellman 密钥交换算法</h1><time datetime=2025-05-12T12:00:13+08:00>2025年5月12日</time><p><strong>Diffie-Hellman 密钥交换算法</strong>在 HTTPS 中被广泛使用，即使在不安全的信道中，也能在客户端和服务器之间安全地建立共享密钥。本文将使用 openssl 的 <code>s_client</code> 工具连接真实的 HTTPS 服务器，观察 <strong>ECDHE</strong>（临时椭圆曲线 Diffie-Hellman）是如何工作的。</p><hr><h2 id=准备工作>准备工作</h2><ul><li>一台 Linux/macOS 系统（Windows 上可使用 WSL）</li><li>安装了 OpenSSL（使用 <code>openssl version</code> 检查）</li><li>可访问互联网</li></ul><hr><h2 id=手把手使用-openssl-连接-tls-服务器>手把手：使用 OpenSSL 连接 TLS 服务器</h2><p>我们将连接 <code>www.baidu.com</code> 并观察握手过程：</p><h3 id=第一步运行-openssl-客户端>第一步：运行 OpenSSL 客户端</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>openssl s_client -connect www.baidu.com:443 -cipher ECDHE
+</span></span></code></pre></div><p>这个命令的含义是：</p><ul><li>连接 <a href=https://www.baidu.com>www.baidu.com</a> 的 443 端口（HTTPS）</li><li>限制只使用 <strong>ECDHE</strong> 的加密套件</li></ul><h3 id=第二步理解输出内容>第二步：理解输出内容</h3><p>你可能会看到类似以下的输出片段：</p><pre tabindex=0><code>CONNECTED(00000006)
+depth=2 OU = GlobalSign Root CA - R3, O = GlobalSign, CN = GlobalSign
+verify return:1
+depth=1 C = BE, O = GlobalSign nv-sa, CN = GlobalSign RSA OV SSL CA 2018
+verify return:1
+depth=0 C = CN, ST = beijing, L = beijing, O = &#34;Beijing Baidu Netcom Science Technology Co., Ltd&#34;, CN = baidu.com
+verify return:1
+---
+Certificate chain
+...
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+subject=C = CN, ST = beijing, L = beijing, O = &#34;Beijing Baidu Netcom Science Technology Co., Ltd&#34;, CN = baidu.com
+issuer=C = BE, O = GlobalSign nv-sa, CN = GlobalSign RSA OV SSL CA 2018
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: ECDH, prime256v1, 256 bits
+---
+SSL handshake has read 5414 bytes and written 443 bytes
+Verification: OK
+---
+New, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256
+Server public key is 2048 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : ECDHE-RSA-AES128-GCM-SHA256
+    Session-ID: ...
+    Master-Key: ...
+    TLS session ticket:
+    ...
+    Verify return code: 0 (ok)
+    Extended master secret: no
+---
+closed
+</code></pre><h4 id=关键字段说明>关键字段说明</h4><table><thead><tr><th>字段</th><th>含义</th></tr></thead><tbody><tr><td>Cipher: ECDHE-RSA-AES128-GCM-SHA256</td><td>表示使用临时 Diffie-Hellman（ECDHE）进行密钥交换，RSA 用于身份认证，AES-128-GCM 用于数据加密，SHA-256 用于完整性校验。</td></tr><tr><td>Server public key is 2048 bit</td><td>是用于身份认证的 RSA 公钥，并非用于密钥交换</td></tr><tr><td>Secure Renegotiation IS supported</td><td>支持 TLS 的安全重新协商功能</td></tr></tbody></table><p>虽然 RSA 公钥在证书中显示，但会话密钥是通过 <strong>临时 ECDH</strong> 推导出来的，这意味着具备了<strong>前向保密性</strong>（即使 RSA 密钥将来被泄露，过去的会话也无法被解密）。</p><h4 id=想看更详细的握手信息加上--msg-参数>想看更详细的握手信息？加上 -msg 参数</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>openssl s_client -connect www.baidu.com:443 -cipher ECDHE -msg
+</span></span></code></pre></div><p>你会看到类似如下的握手过程：</p><pre tabindex=0><code>&gt;&gt;&gt; TLS 1.2 Handshake [ClientHello]
+&gt;&gt;&gt; TLS 1.2 Handshake [ServerHello]
+&gt;&gt;&gt; TLS 1.2 Handshake [ServerKeyExchange]
+</code></pre><p>在 <code>ServerKeyExchange</code> 中，你可以看到服务器的 <strong>ECDH 公钥</strong>，它将与客户端的密钥一起推导共享密钥。</p><blockquote><p>注意：在 <strong>TLS 1.3</strong> 中，握手过程更简化，没有单独的 <code>ServerKeyExchange</code> 消息，密钥交换数据被包含在 ServerHello 中。</p></blockquote><hr><h2 id=总结>总结</h2><p>这个简单的示例展示了 ECDHE（Diffie-Hellman 的一种形式）在 HTTPS 中通过 TLS 的使用方式：</p><ul><li>安全地建立共享密钥</li><li>防止被动监听</li><li>启用<strong>前向保密性</strong></li></ul><p>现代浏览器中，每一次 HTTPS 连接背后，都有这些机制在为你的安全保驾护航。</p></article></div></main><footer><div class=footer-container><div class=footer-content><p>&copy; 2025 小明的空间. All rights reserved.</p><a href=https://beian.miit.gov.cn/ target=_blank>皖ICP备2025084530号-1</a></div></div></footer></body></html>
